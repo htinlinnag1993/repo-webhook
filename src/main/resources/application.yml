@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: repo-webhook
+  datasource:
+    url: jdbc:h2:mem:webhooks;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+  jackson:
+    # GitHub-style JSON: {"content_type": "json", "created_at": ...}
+    property-naming-strategy: SNAKE_CASE
+
+webhook:
+  delivery:
+    connect-timeout: 5s
+    read-timeout: 10s
+    # Total attempts per delivery (first try + retries). Only network errors, 408, 429 and 5xx are retried.
+    max-attempts: 5
+    initial-backoff: 10s
+    backoff-multiplier: 2.0
+    max-backoff: 1h
+    # How often the scheduler looks for deliveries that are due for a retry.
+    retry-poll-interval: PT5S
+    # A PENDING delivery that was never picked up (e.g. app restarted) is swept up after this long.
+    pending-grace: 30s
+    max-response-body-bytes: 4096
+    user-agent: RepoWebhook-Hookshot/1.0
+    # Set to false in production to block loopback / private-network targets (basic SSRF protection).
+    allow-private-addresses: true
+
+# Built-in receiver at POST /demo/receiver for trying the flow locally. Disable in production.
+demo:
+  receiver:
+    enabled: true
+    secret: dev-secret
